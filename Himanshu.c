@@ -2,73 +2,171 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <unistd.h>
-#define int fixedtime = 10;
+#include <stdbool.h>
+#include <stdlib.h>
 
+#define FIXEDTIME = 10;
+
+// Threads Function Declaration
 void *time_check();
 void *new_queries();
 void *queries_handler();
 
+// Bool Declaration to Stop "time_check" and "queries_handler" Threads while Exiting from Program
+bool timecheckexit = true;
+bool querieshandlerexit = true;
+
+// Shared Variables Declaration
 int student_queue[100][2];
 int teacher_queue[100][2];
 int student_count = -1, teacher_count = -1, initial_time = 0, total_time_spent = 0, avg_query_time = 0;
 
-void main()
+// Main Method
+int main()
 {
+    void *thread_message;
     pthread_t timecheck, newqueries, querieshandler;
     int check;
     check = pthread_create(&timecheck, NULL, time_check, NULL);
-    if (check == 0)
+    if (check != 0)
     {
     }
-    check = pthread_create(&new_queries, NULL, newqueries, NULL);
-    if (check == 0)
+    check = pthread_create(&newqueries, NULL, new_queries, NULL);
+    if (check != 0)
     {
     }
     check = pthread_create(&querieshandler, NULL, queries_handler, NULL);
-    if (check == 0)
+    if (check != 0)
     {
     }
+    check = pthread_join(timecheck,&thread_message);
+    if(check != 0){
+    }
+    check = pthread_join(newqueries,&thread_message);
+    if(check !=0){
+    }
+    check = pthread_join(querieshandler,&thread_message);
+    if(check != 0){
+    }
+    exit(EXIT_SUCCESS);
+    return 0;
 }
 
+// Thread to Control Time
 void *time_check()
 {
+    while(timecheckexit){
+        initial_time++;
+        if(initial_time == 25){
+            initial_time = 0;
+        }
+        sleep(15);
+    }
+    pthread_exit("Time Check Thread EXIT");
 }
 
+// Thread to Enter New Queries
 void *new_queries()
 {
     char flag;
 start_new_queries:
-    printf("\nEnter \n's' for Student. \n't' for Teacher.");
-    scanf(% c, &flag);
+    printf("\nEnter \n's' for Student. \n't' for Teacher. \n'q' for EXIT \n");
+    scanf("%c", &flag);
 
     if (flag == 's' || flag == 'S')
     {
-        printf("\nEnter Query Length");
-        scanf(% d, &student_queue[++student_count][0]);
-        student_queue[student_queue][1] = initial_time;
+        // Enter Student Query
+        printf("\nEnter Query Length\n");
+        scanf("%d", &student_queue[++student_count][0]);
+        student_queue[student_count][1] = initial_time;
+        printf("Student Query Added Successfuly");
         goto start_new_queries;
     }
     else if (flag == 't' || flag == 't')
     {
-        printf("\nEnter Query Length");
-        scanf(% d, &teacher_queue[++teacher_count][0]);
-        teacher_queue[teaceher_count][1] = initial_time;
+        // Enter Teacher Query
+        printf("\nEnter Query Length\n");
+        scanf("%d", &teacher_queue[++teacher_count][0]);
+        teacher_queue[teacher_count][1] = initial_time;
+        printf("Teacher Query Added Successfuly");
         goto start_new_queries;
     }
     else if (flag == 'q' || flag == 'Q')
     {
-        printf("Total time in Handling Queries : %d", total_time_spent);
-        printf("Avg time to complete a Query : &d", avg_query_time);
+        // EXIT from program
+        printf("Total time in Handling Queries : %d\n", total_time_spent);
+        printf("Avg time to complete a Query : %d\n", avg_query_time);
         printf("\nEXIT\n");
+        timecheckexit = false; // To EXIT "time_check" Thread
+        querieshandlerexit = false; // To EXIT "queries_handler" Thread
+        pthread_exit("New Queries Thread EXIT");
     }
     else
     {
+        // Wrong Input
         printf("Wrong Input");
         goto start_new_queries;
     }
+    pthread_exit("New Queries Thread EXIT");
 }
 
+// Thread to Handle Queries
 void *queries_handler()
 {
-    int position;
+    int temp_student_position = 0; temp_teacher_position; // To Traverse Queries by Query Handler 
+
+    bool temp_changer = true; // To Handle Teacher and Student Queries Both One by One Simultaneously
+
+    // While Loop to Exit Thread when Exiting from Main Program
+    while(querieshandlerexit){
+
+        // If else to handle queries only between 10 to 12
+        if(initial_time >= 10 && initial_time<= 12){
+
+            
+            if(temp_changer){
+                // Teacher Queries
+                if(temp_teacher_position <= teacher_count){
+
+                    teacher_queue[temp_teacher_position][0] -= FIXEDTIME;
+
+                    if(teacher_queue[temp_teacher_position][0] <= 0){
+                        // Calculate Average Query Time
+
+
+
+                        teacher_queue[temp_teacher_position][0] = teacher_queue[teacher_count][0]
+                        teacher_queue[temp_teacher_position][1] = teacher_queue[teacher_count][1]
+                        teacher_count--;
+                    }
+                    else{
+                        temp_teacher_position++;
+                    }
+
+                    // Calculate Total Time in Handling Queries
+
+                    
+                }else{
+                    temp_teacher_position = 0;
+                }
+
+                temp_changer = false;
+            }
+            else{
+                // Student Queries
+                if(temp_student_position <= student_count){
+                
+                    student_queue[temp_student_position][0] -=  FIXEDTIME;
+                    temp_student_position++
+                }else{
+                    temp_student_position = 0;
+                }
+
+
+                temp_changer = true;
+            }
+        }
+    }
+
+    pthread_exit("Queries Handler Thread EXIT");
 }
