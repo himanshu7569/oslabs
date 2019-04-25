@@ -2,7 +2,7 @@
 /*
     Sudesh Sharma is a Linux expert who wants to have an online system where he can handle student queries. Some there can be multiple
     requests at any time he wishes to dedicate a fixed amount of time to every request so that everyone gets a fair share of the time.
-    He will log into the system from 10am to 12am only. He wants to have seperate requests queues for students and faculty. Implement
+    He will log into the system from 10am to 12am only. He wants to have separate requests queues for students and faculty. Implement
     a strategy for the same. The summary at the end the session should include the total time he spent on handling queries and average
     query time.
 */
@@ -75,7 +75,14 @@ void *time_check()
             initial_time = 0;
         }
         sleep(2);
-        printf("\nTime : %d\n", initial_time);
+        if (initial_time == 10)
+        {
+            printf("\nQuery Handling Started.\n");
+        }
+        if (initial_time == 12)
+        {
+            printf("\nQuery Handling Closed\n");
+        }
     }
     pthread_exit("Time Check Thread EXIT");
 }
